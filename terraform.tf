@@ -27,7 +27,7 @@ variable "size_in_gbs" {
 }
 
 variable "instance_name" {
-  default = "TFWindows"
+  default = "ad-server"
 }
 
 variable "instance_image_ocid" {
@@ -40,7 +40,9 @@ variable "instance_image_ocid" {
     us-ashburn-1   = "ocid1.image.oc1.iad.aaaaaaaaxgzzrdoge7zxrjtmjqjhicaxsujljvaju3mbwryo5x5k5axlmsza"
     uk-london-1    = "ocid1.image.oc1.uk-london-1.aaaaaaaaedntd3p6jed5d2p7gsohfu6x3k67s364amtzb5vwfzrvfzt2rrlq"
     us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaaskz7sq3mlmiwazehuqzoxdq4xz7sinrwn5m6kedxz3td2c7it2vq"
-    sa-saopaulo-1  = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaaywgvvgiguphkxanvuydiinda3hrcygtr6c7gaw7cr4t4d3jxhbdq"
+    # Windows-Server-2019-Standard-Edition-VM-E3-2020.10.20-0
+    # https://docs.oracle.com/en-us/iaas/images/image/d8f0601f-8d32-4283-8ab7-80466de63ed5/
+    sa-saopaulo-1  = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaackqe7r4zy7wurd54p52y5dtw4yx77rzdtujoy43hgrx45m5xjxva"
   }
 }
 
@@ -82,7 +84,6 @@ data "template_cloudinit_config" "cloudinit_config" {
 }
 
 # Network
-
 data "oci_identity_availability_domain" "ad" {
   compartment_id = var.tenancy_ocid
   ad_number      = 1
@@ -114,7 +115,7 @@ resource "oci_core_route_table" "test_route_table" {
 }
 
 # https://docs.cloud.oracle.com/iaas/Content/Compute/Tasks/accessinginstance.htm#one
-resource "oci_core_security_list" "test_security_list" {
+resource "oci_core_security_list" "ad_security_list" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.test_vcn.id
   display_name   = "TestSecurityList"
@@ -145,6 +146,201 @@ resource "oci_core_security_list" "test_security_list" {
     }
   }
 
+  # allow inbound RPC endpoint mapper
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 135
+      max = 135
+    }
+  }
+
+  # allow inbound NetBIOS name service
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 137
+      max = 137
+    }
+  }
+
+  # allow inbound WINS replication
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 42
+      max = 42
+    }
+  }
+
+  # allow inbound DNS
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 53
+      max = 53
+    }
+  }
+
+  # allow inbound http
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "0.0.0.0/0"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 80
+      max = 80
+    }
+  }
+
+  # allow inbound Kerberos
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 88
+      max = 88
+    }
+  }
+
+  # allow inbound NetBIOS datagram service
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 138
+      max = 138
+    }
+  }
+
+  # allow inbound NetBIOS session service
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 139
+      max = 139
+    }
+  }
+
+  # allow inbound LDAP
+  ingress_security_rules {
+    protocol  = "17" # udp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    udp_options {
+      # These values correspond to the destination port range.
+      min = 389
+      max = 389
+    }
+  }
+
+  # allow inbound SMB over IP (Microsoft-DS)
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 445
+      max = 445
+    }
+  }
+
+  # allow inbound LDAP over SSL
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 636
+      max = 636
+    }
+  }
+
+  # allow inbound WINS resolution
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 1512
+      max = 1512
+    }
+  }
+
+  # allow inbound Global catalog LDAP
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 3268
+      max = 3268
+    }
+  }
+
+  # allow inbound Global catalog LDAP over SSL
+  ingress_security_rules {
+    protocol  = "6" # tcp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    tcp_options {
+      # These values correspond to the destination port range.
+      min = 3269
+      max = 3269
+    }
+  }
+
+  # allow inbound RPC
+  ingress_security_rules {
+    protocol  = "17" # udp
+    source    = "10.1.20.0/24"
+    stateless = false
+
+    udp_options {
+      # These values correspond to the destination port range.
+      min = 49152
+      max = 65535
+    }
+  }
+
   # allow all outbound traffic
   egress_security_rules {
     protocol    = "all"
@@ -158,7 +354,7 @@ resource "oci_core_subnet" "test_subnet" {
   cidr_block          = "10.1.20.0/24"
   display_name        = "TestSubnet"
   dns_label           = "testsubnet"
-  security_list_ids   = [oci_core_security_list.test_security_list.id]
+  security_list_ids   = [oci_core_security_list.ad_security_list.id]
   compartment_id      = var.compartment_ocid
   vcn_id              = oci_core_vcn.test_vcn.id
   route_table_id      = oci_core_route_table.test_route_table.id
@@ -167,11 +363,16 @@ resource "oci_core_subnet" "test_subnet" {
 
 # Compute
 
-resource "oci_core_instance" "test_instance" {
+resource "oci_core_instance" "ad_server" {
   availability_domain = data.oci_identity_availability_domain.ad.name
   compartment_id      = var.compartment_ocid
   display_name        = var.instance_name
-  shape               = "VM.Standard2.1"
+  shape               = "VM.Standard.E3.Flex"
+
+    shape_config {
+    ocpus = 2
+    memory_in_gbs = 16
+  }
 
   # Refer cloud-init in https://docs.cloud.oracle.com/iaas/api/#/en/iaas/20160918/datatypes/LaunchInstanceDetails
   metadata = {
@@ -181,20 +382,21 @@ resource "oci_core_instance" "test_instance" {
 
   create_vnic_details {
     subnet_id      = oci_core_subnet.test_subnet.id
-    hostname_label = "winmachine"
+    hostname_label = "ad-server"
   }
 
   source_details {
     boot_volume_size_in_gbs = var.size_in_gbs
     source_id               = var.instance_image_ocid[var.region]
     source_type             = "image"
-  }
+  } 
 }
 
 data "oci_core_instance_credentials" "instance_credentials" {
-  instance_id = oci_core_instance.test_instance.id
+  instance_id = oci_core_instance.ad_server.id
 }
 
+/* 
 resource "oci_core_volume" "test_volume" {
   availability_domain = data.oci_identity_availability_domain.ad.name
   compartment_id      = var.compartment_ocid
@@ -204,9 +406,10 @@ resource "oci_core_volume" "test_volume" {
 
 resource "oci_core_volume_attachment" "test_volume_attachment" {
   attachment_type = "iscsi"
-  instance_id     = oci_core_instance.test_instance.id
+  instance_id     = oci_core_instance.ad_server.id
   volume_id       = oci_core_volume.test_volume.id
 }
+ */
 
 # Outputs
 
@@ -219,9 +422,9 @@ output "password" {
 }
 
 output "instance_public_ip" {
-  value = [oci_core_instance.test_instance.public_ip]
+  value = [oci_core_instance.ad_server.public_ip]
 }
 
 output "instance_private_ip" {
-  value = [oci_core_instance.test_instance.private_ip]
+  value = [oci_core_instance.ad_server.private_ip]
 }

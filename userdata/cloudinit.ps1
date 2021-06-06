@@ -1,13 +1,22 @@
 #ps1_sysnative
 
 # Template variables
-$user='${instance_user}'
-$password='${instance_password}'
-$computerName='${instance_name}'
+$user = '${instance_user}'
+$password = "Trov@dor3nses" # '${instance_password}'
+$computerName = '${instance_name}'
 
-Write-Output "Changing $user password"
+#Denis
+$LogFile = 'c:\instance_ps1_log.log'
+
+# Log function
+function Log($message) {
+    $ldt = get-date -f "yyyy-MM-dd hh:mm:ss,fff"
+    "$ldt - $message" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+}
+
+Log "Changing $user password"
 net user $user $password
-Write-Output "Changed $user password"
+Log "Changed $user password"
 
 Write-Output "Configuring WinRM"
 # Allow unencrypted if you wish to use http 5985 endpoint
@@ -39,3 +48,5 @@ New-WSManInstance -ResourceURI 'winrm/config/Listener' -SelectorSet $selectorSet
 Write-Output "Enabled HTTPS listener"
 
 Write-Output "Configured WinRM"
+Log "Configured WinRM"
+Log "############ End Of cloudinit.ps1 ############"

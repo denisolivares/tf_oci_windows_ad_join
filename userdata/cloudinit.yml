@@ -2,12 +2,42 @@
 write_files:
  - path:     C:/init.ps1
    content:  |
-     echo "add your custom commands and scripts here"
+      echo "add your custom commands and scripts here"
+      # Denis
+      $hostname = hostname
+      $domainName = 'example.com'
+      $serverUser = "Administrator"
+      $passwordAD = "Trov@dor3nses"
+      $safePassword = $passwordAD | ConvertTo-SecureString -AsPlainText -Force
+      $domainUser = 'johndoe'
+      $Firstname = 'John'
+      $Lastname = 'Doe'
+      $Department = 'IC'
+      $SecretOCID = 'ocid1.vaultsecret.oc1.sa-saopaulo-1.amaaaaaa527wpsqaclqo3ioudvp6id7a4fh2hhbgzb3g2kttnbhmibzkedzq'
+
+      #Denis
+      $LogFile = 'c:\instance_ps1_log.log'
+
+      # Log function
+      function Log($message) {
+          $ldt = get-date -f "yyyy-MM-dd hh:mm:ss,fff"
+          "$ldt - $message" | Out-File -FilePath $LogFile -Append -Encoding UTF8
+      }
+
+      Log "Changing $serverUser password"
+      net user $serverUser $passwordAD /active
+      Log "Changed $serverUser password"
+
+      Log "Installing AD Domain Services feature"
+      Install-WindowsFeature -Name AD-Domain-Services –-IncludeManagementTools
+      Log "Installed AD Domain Services feature"
+
+
 # Depending on the image that is being used runcmd plugin may not be supported, you may use ps1_sysnative config instead
 # Windows-Server-2012-R2-Standard-Edition-VM-2018.07.19-0 - cloudbaseinit.plugins.common.userdataplugins.cloudconfig [-] Plugin 'runcmd' is currently not supported
 runcmd:
  - echo "Hello from Terraform"
- - powershell.exe "C:/init.ps1"
+# - powershell.exe "C:/init.ps1"
 
 # Depending on the image that is being used script plugin may not be supported, you may use ps1_sysnative config instead
 # Windows-Server-2012-R2-Standard-Edition-VM-2018.07.19-0 - cloudbaseinit.plugins.common.userdataplugins.cloudconfig [-] Plugin 'script' is currently not supported
