@@ -1,0 +1,80 @@
+auacc01409
+T@p3t30QLj6mn*voador
+
+#New-NetIPAddress -InterfaceIndex 7 -IPAddress 10.1.20.3 -PrefixLength 24 -DefaultGateway 10.1.20.1
+#Get-NetIPAddress
+#Set-DnsClientServerAddress -InterfaceIndex 7 -ServerAddresses ("192.168.61.100","8.8.8.8")
+
+
+$user="Administrator"
+$password= "Trov@dor3nses"
+$domain="example.com"
+$safePassword = $password | ConvertTo-SecureString -AsPlainText -Force
+
+net user $user $password
+
+Install-WindowsFeature –Name AD-Domain-Services –IncludeManagementTools
+
+Install-ADDSForest `
+-Confirm:$false `
+-DomainName:$domain `
+-SafeModeAdministratorPassword:$safePassword `
+-CreateDnsDelegation:$false ` 
+-DatabasePath "C:\Windows\NTDS" ` 
+-DomainMode "7" ` 
+-DomainNetbiosName "example" ` 
+-ForestMode "7" ` 
+-InstallDns:$true ` 
+-LogPath "C:\Windows\NTDS" ` 
+-NoRebootOnCompletion:$True ` 
+-SysvolPath "C:\Windows\SYSVOL" ` 
+-Force:$true
+
+
+New-ADUser `
+-SamAccountName $Username `
+-UserPrincipalName "$Username@yourdomain.com" `
+-Name "$Firstname $Lastname" `
+-GivenName $Firstname `
+-Surname $Lastname `
+-Enabled $True `
+-ChangePasswordAtLogon $True `
+-DisplayName "$Lastname, $Firstname" `
+-Department $Department `
+-Path $OU `
+-AccountPassword (convertto-securestring $Password -AsPlainText -Force)
+
+
+SCHTASKS /CREATE /SC ONSTART /TN "Sky\renameAndDomainJoin" /TR "'C:\Program Files\PowerShell\7\pwsh.exe' C:\Util\renameAndDomainJoin.ps1" /RU user1 /NP /RL HIGHEST
+
+SCHTASKS /DELETE /TN "Sky\renameAndDomainJoin"
+
+C:\Windows\System32\Sysprep\sysprep.exe /generalize /quiet /oobe /shutdown /unattend:c:\windows\system32\sysprep\unattend.xml
+
+
+Referências
+    Windows server 2019 Step-By-Step: Setup Active Directory environment using PowerShell
+        https://social.technet.microsoft.com/wiki/contents/articles/52765.windows-server-2019-step-by-step-setup-active-directory-environment-using-powershell.aspx#Active_directory_Topology
+    
+    Working with Passwords, Secure Strings and Credentials in Windows PowerShell
+        https://social.technet.microsoft.com/wiki/contents/articles/4546.working-with-passwords-secure-strings-and-credentials-in-windows-powershell.aspx
+    
+    Install-ADDSForest
+        https://docs.microsoft.com/en-us/powershell/module/addsdeployment/install-addsforest?view=winserver2012r2-ps
+    
+    How to Create New Active Directory Users with PowerShell
+        https://blog.netwrix.com/2018/06/07/how-to-create-new-active-directory-users-with-powershell/
+    
+    New-ADUser
+        https://docs.microsoft.com/en-us/powershell/module/addsadministration/new-aduser?view=win10-ps
+
+    FIX: SysPrep Fatal error: dwRet = 31, Machine is in an invalid state or we couldn't update the recorded state.
+        https://www.wintips.org/fix-sysprep-fatal-error-dwret-31-machine-invalid-state-couldnt-update-recorded-state/
+
+    Add a Custom Script to Windows Setup
+        https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-a-custom-script-to-windows-setup
+
+
+
+
+    
